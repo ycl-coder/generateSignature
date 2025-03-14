@@ -8,7 +8,7 @@ WORKDIR /app
 ENV GOPROXY=https://goproxy.cn,direct
 
 # 复制依赖文件先执行下载（利用 Docker 缓存优化构建速度）
-COPY go.mod go.sum ./
+COPY go.mod ./
 RUN go mod download
 
 # 复制所有源代码到容器
