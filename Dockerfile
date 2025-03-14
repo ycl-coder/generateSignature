@@ -9,8 +9,6 @@ RUN if [ ! -f go.sum ]; then touch go.sum; fi
 # 复制依赖文件（利用 Docker 缓存层加速构建）
 COPY go.mod go.sum ./
 
-RUN if [ ! -s go.sum ]; then go mod tidy; fi
-
 # 设置国内代理加速依赖下载（解决 go mod download 超时问题）
 ENV GOPROXY=https://goproxy.cn,direct
 
