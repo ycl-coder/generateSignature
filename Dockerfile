@@ -28,7 +28,7 @@ USER appuser
 COPY --from=builder --chown=appuser:appgroup /app/main /app/main
 
 # 暴露微信云托管要求的端口（必须与发布配置一致）
-EXPOSE 80
+EXPOSE 8080
 
 # 启动应用（微信云托管要求前台运行）
 CMD ["/app/main"]
