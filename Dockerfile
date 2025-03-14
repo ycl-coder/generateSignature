@@ -1,5 +1,7 @@
-# 使用官方 Go 镜像作为构建环境
+# 构建阶段
 FROM golang:1.21-alpine AS builder
+# 运行时阶段
+FROM alpine:3.18
 
 # 设置容器内工作目录（需与项目结构一致）
 WORKDIR /app
