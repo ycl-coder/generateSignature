@@ -1,36 +1,36 @@
-# 构建阶段
+# 使用官方 Go 镜像（Alpine 版更轻量）
 FROM golang:1.21-alpine AS builder
-# 运行时阶段
-FROM alpine:3.18
 
-# 设置容器内工作目录（需与项目结构一致）
+# 设置容器内工作目录（与项目根目录对应）
 WORKDIR /app
 
-# 启用 Go Modules 并设置国内代理
+# 复制依赖文件（利用 Docker 缓存层加速构建）
+COPY go.mod go.sum ./
+
+# 设置国内代理加速依赖下载（解决 go mod download 超时问题）
 ENV GOPROXY=https://goproxy.cn,direct
 
-# 复制依赖文件先执行下载（利用 Docker 缓存优化构建速度）
-COPY go.mod ./
-RUN go mod download
+# 下载依赖（保留 mod 文件校验）
+RUN go mod download && go mod verify
 
-# 复制所有源代码到容器
+# 复制全部项目文件到容器（排除 .dockerignore 中的文件）
 COPY . .
 
-# 编译生成二进制文件（CGO 禁用以适应 Alpine）
-RUN CGO_ENABLED=0 GOOS=linux go build -o /app/main .
+# 编译项目（指定输出文件名为 main，兼容不同入口路径）
+RUN go build -o main ./app/main.go  # 若主文件在 app 目录则改为 ./app/main.go
 
-# 使用轻量级运行时镜像
-FROM alpine:3.19
+# --- 多阶段构建：减小镜像体积 ---
+FROM alpine:3.18
 
-# 设置容器内非 root 用户（提升安全性）
+# 设置非 root 用户（增强安全性）
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
 
-# 从构建阶段复制编译结果
+# 从构建阶段复制二进制文件
 COPY --from=builder --chown=appuser:appgroup /app/main /app/main
 
-# 暴露微信云托管要求的端口（必须与发布配置一致）
+# 暴露应用端口（根据实际端口调整）
 EXPOSE 8080
 
-# 启动应用（微信云托管要求前台运行）
-CMD ["/app/main"]
+# 启动应用（前台运行避免容器退出）
+ENTRYPOINT ["/app/main"]
