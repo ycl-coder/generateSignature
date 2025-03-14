@@ -4,8 +4,6 @@ FROM golang:1.21-alpine AS builder
 # 设置容器内工作目录（与项目根目录对应）
 WORKDIR /app
 
-RUN if [ ! -f go.sum ]; then touch go.sum; fi
-
 # 复制依赖文件（利用 Docker 缓存层加速构建）
 COPY go.mod go.sum ./
 
